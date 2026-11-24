@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Second Face</title>
+    <link rel="stylesheet" href="{% static 'media_intake/upload.css' %}" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="page__header">
+        <h1 class="page__title">Second Face</h1>
+        <p class="page__lead">
+          Upload a video to replace the visible face with a synthetic one.
+          Replacing the face alone may not protect your identity—choose what
+          else you want concealed below.
+        </p>
+      </header>
+
+      <section id="choose-panel" class="panel" aria-labelledby="upload-heading">
+        <h2 id="upload-heading" class="panel__heading">Your video</h2>
+
+        <form
+          id="upload-form"
+          class="upload-form"
+          action="/api/videos/"
+          method="post"
+          enctype="multipart/form-data"
+          novalidate
+        >
+          {% csrf_token %}
+
+          <div class="field">
+            <label class="field__label" for="video">Video file</label>
+            <input
+              type="file"
+              id="video"
+              name="video"
+              accept="video/mp4,video/quicktime,video/webm"
+              class="field__input"
+              required
+            />
+            <p class="field__hint">
+              MP4, MOV, or WebM. Up to 100 MB and 2 minutes.
+            </p>
+            <p id="file-error" class="field__error" role="alert" hidden></p>
+          </div>
+
+          <fieldset class="conceal">
+            <legend class="conceal__legend">Also conceal</legend>
+            <p class="conceal__intro">
+              Optional. Unchecked options stay as filmed.
+            </p>
+            <ul class="conceal__list">
+              <li class="conceal__item">
+                <label class="conceal__label">
+                  <input
+                    type="checkbox"
+                    name="conceal_voice"
+                    value="true"
+                    class="conceal__checkbox"
+                  />
+                  <span class="conceal__text">
+                    <span class="conceal__name">Voice</span>
+                    <span class="conceal__desc">Alter or mask how you sound.</span>
+                  </span>
+                </label>
+              </li>
+              <li class="conceal__item">
+                <label class="conceal__label">
+                  <input
+                    type="checkbox"
+                    name="conceal_tattoos"
+                    value="true"
+                    class="conceal__checkbox"
+                  />
+                  <span class="conceal__text">
+                    <span class="conceal__name">Tattoos</span>
+                    <span class="conceal__desc">Cover visible tattoos on skin.</span>
+                  </span>
+                </label>
+              </li>
+              <li class="conceal__item">
+                <label class="conceal__label">
+                  <input
+                    type="checkbox"
+                    name="conceal_background"
+                    value="true"
+                    class="conceal__checkbox"
+                  />
+                  <span class="conceal__text">
+                    <span class="conceal__name">Background</span>
+                    <span class="conceal__desc"
+                      >Windows, street views, and other surroundings.</span
+                    >
+                  </span>
+                </label>
+              </li>
+              <li class="conceal__item">
+                <label class="conceal__label">
+                  <input
+                    type="checkbox"
+                    name="conceal_clothing"
+                    value="true"
+                    class="conceal__checkbox"
+                  />
+                  <span class="conceal__text">
+                    <span class="conceal__name">Clothing</span>
+                    <span class="conceal__desc"
+                      >Distinctive outfits or logos on clothing.</span
+                    >
+                  </span>
+                </label>
+              </li>
+              <li class="conceal__item">
+                <label class="conceal__label">
+                  <input
+                    type="checkbox"
+                    name="conceal_name_tags"
+                    value="true"
+                    class="conceal__checkbox"
+                  />
+                  <span class="conceal__text">
+                    <span class="conceal__name">Name tags</span>
+                    <span class="conceal__desc"
+                      >Badges, name plates, and on-screen text with your name.</span
+                    >
+                  </span>
+                </label>
+              </li>
+              <li class="conceal__item">
+                <label class="conceal__label">
+                  <input
+                    type="checkbox"
+                    name="conceal_reflections"
+                    value="true"
+                    class="conceal__checkbox"
+                  />
+                  <span class="conceal__text">
+                    <span class="conceal__name">Reflections</span>
+                    <span class="conceal__desc"
+                      >Mirrors, glass, and other reflective surfaces.</span
+                    >
+                  </span>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <div class="consent">
+            <label class="consent__label">
+              <input
+                type="checkbox"
+                id="consent"
+                name="consent"
+                class="consent__checkbox"
+                required
+              />
+              <span class="consent__text">
+                I understand my video is sent to Magic Hour to replace my face
+                and to apply any concealment options I checked above.
+              </span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="submit-btn" class="btn btn--primary" disabled>
+              Replace face
+            </button>
+            <button
+              type="button"
+              id="cancel-btn"
+              class="btn btn--secondary"
+              hidden
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <div
+        id="status-region"
+        class="status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        hidden
+      ></div>
+
+      <section
+        id="preview-panel"
+        class="panel panel--preview"
+        aria-labelledby="preview-heading"
+        hidden
+      >
+        <h2 id="preview-heading" class="panel__heading">Preview</h2>
+        <p id="preview-reminder" class="preview__reminder"></p>
+        <div class="preview__player-wrap">
+          <video
+            id="result-video"
+            class="preview__video"
+            controls
+            playsinline
+          ></video>
+        </div>
+        <div class="preview__actions">
+          <a
+            id="download-link"
+            class="btn btn--primary"
+            download="face-replaced"
+            hidden
+            >Download</a
+          >
+          <button type="button" id="start-over-btn" class="btn btn--secondary">
+            Start over
+          </button>
+        </div>
+      </section>
+
+      <p id="failure-message" class="failure" role="alert" hidden>
+        We could not prepare your video. Please try again, or choose a
+        different file.
+      </p>
+    </main>
+    <script src="{% static 'media_intake/upload.js' %}" defer></script>
+  </body>
+</html>
